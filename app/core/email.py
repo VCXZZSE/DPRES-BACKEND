@@ -144,14 +144,15 @@ def send_password_changed_alert_email(to_email: str, changed_at_utc: Optional[da
     )
 
     support_email = 'toshibawin21@gmail.com'
-    support_subject = quote('Urgent: Unauthorized DPRES password change')
+    support_subject = quote('Urgent: Unauthorized DPRES password change', safe='')
     support_body = quote(
         (
-            'Hello DPRES Support,%0D%0A%0D%0A'
-            f'I did not authorize a password change on my account ({to_email}).%0D%0A'
-            f'Password changed at: {formatted_dt}%0D%0A%0D%0A'
-            'Please help me secure my account immediately.%0D%0A'
-        )
+            'Hello DPRES Support,\r\n\r\n'
+            f'I did not authorize a password change on my account ({to_email}).\r\n'
+            f'Password changed at: {formatted_dt}\r\n\r\n'
+            'Please help me secure my account immediately.\r\n'
+        ),
+        safe='',
     )
     support_mailto = f'mailto:{support_email}?subject={support_subject}&body={support_body}'
 
@@ -183,25 +184,26 @@ def send_password_changed_alert_email(to_email: str, changed_at_utc: Optional[da
                 <td align=\"center\">
                     <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:760px;background:#eef1f5;border:1px solid #f0a55d;border-radius:14px;overflow:hidden;\">
                         <tr>
-                            <td style=\"padding:28px 24px 10px 24px;font-size:46px;line-height:1;color:#f97316;text-align:center;\">◆</td>
+                            <td style="padding:20px 20px 8px 20px;font-size:34px;line-height:1;color:#f97316;text-align:center;">◆</td>
                         </tr>
                         <tr>
-                            <td style=\"padding:0 24px 22px 24px;\">
-                                <p style=\"margin:0 0 16px 0;font-size:44px;line-height:1.1;color:#ef4444;font-weight:700;text-align:center;\">PASSWORD CHANGED!</p>
-                                <p style=\"margin:0 0 20px 0;font-size:17px;line-height:1.6;color:#334155;text-align:center;\">Namaste,</p>
-                                <p style=\"margin:0 0 18px 0;font-size:17px;line-height:1.65;color:#334155;\">This is to confirm that your password was successfully changed on <span style=\"color:#c2410c;font-weight:700;\">{formatted_dt}</span>.</p>
-                                <p style=\"margin:0 0 20px 0;font-size:17px;line-height:1.65;color:#334155;\">If you made this change, no further action is required. Your account remains secure.</p>
+                            <td style="padding:0 20px 18px 20px;">
+                                <p style="margin:0 0 8px 0;font-size:14px;line-height:1.4;color:#64748b;font-weight:600;text-align:center;letter-spacing:0.4px;">DPRES Password Changed Alert</p>
+                                <p style="margin:0 0 12px 0;font-size:36px;line-height:1.1;color:#ef4444;font-weight:700;text-align:center;">PASSWORD CHANGED!</p>
+                                <p style="margin:0 0 16px 0;font-size:18px;line-height:1.5;color:#334155;font-weight:600;text-align:left;">Namaste,</p>
+                                <p style="margin:0 0 14px 0;font-size:15px;line-height:1.6;color:#334155;">This is to confirm that your password was successfully changed on <span style="color:#c2410c;font-weight:700;">{formatted_dt}</span>.</p>
+                                <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#334155;">If you made this change, no further action is required. Your account remains secure.</p>
 
                                 <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f9f1ef;border-left:6px solid #ef4444;border-radius:10px;\">
                                     <tr>
-                                        <td style=\"padding:22px 18px;\">
-                                            <p style=\"margin:0 0 12px 0;font-size:46px;line-height:1;color:#ef4444;text-align:center;\">!</p>
-                                            <p style=\"margin:0 0 12px 0;font-size:44px;line-height:1.1;color:#0f172a;font-weight:700;text-align:center;\">Was this not you?</p>
-                                            <p style=\"margin:0 0 18px 0;font-size:17px;line-height:1.65;color:#334155;text-align:center;\">If you did not make this change, your account may have been compromised. Please contact our support team immediately to secure your account.</p>
+                                        <td style="padding:18px 14px;">
+                                            <p style="margin:0 0 8px 0;font-size:34px;line-height:1;color:#ef4444;text-align:center;">!</p>
+                                            <p style="margin:0 0 10px 0;font-size:22px;line-height:1.2;color:#0f172a;font-weight:700;text-align:center;">Was this not you?</p>
+                                            <p style="margin:0 0 14px 0;font-size:15px;line-height:1.6;color:#334155;text-align:center;">If you did not make this change, your account may have been compromised. Please contact our support team immediately to secure your account.</p>
                                             <table role=\"presentation\" align=\"center\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin:0 auto;\">
                                                 <tr>
                                                     <td align=\"center\" style=\"background:linear-gradient(90deg,#ff6a00,#ff0000);border-radius:16px;\">
-                                                        <a href=\"{support_mailto}\" style=\"display:inline-block;padding:14px 22px;font-size:16px;line-height:1.2;font-weight:700;color:#ffffff;text-decoration:none;\">Contact Support Immediately</a>
+                                                        <a href="{support_mailto}" style="display:inline-block;padding:12px 18px;font-size:14px;line-height:1.2;font-weight:700;color:#ffffff;text-decoration:none;">Contact Support Immediately</a>
                                                     </td>
                                                 </tr>
                                             </table>
