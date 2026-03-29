@@ -387,7 +387,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     db.commit()
 
     try:
-        send_password_changed_alert_email(user.email)
+        send_password_changed_alert_email(user.email, changed_at_utc=now)
     except Exception:
         # Password has already been changed; do not roll back on notification failures.
         pass
