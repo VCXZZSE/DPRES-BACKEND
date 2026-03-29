@@ -74,6 +74,12 @@ def _get_current_user(
     return user
 
 
+def get_current_sdma_admin(current_user: User = Depends(_get_current_user)) -> User:
+    if current_user.role != UserRole.SDMA_ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='SDMA admin access required')
+    return current_user
+
+
 @router.get('/ping')
 def ping_auth() -> dict[str, str]:
     return {'status': 'auth-router-ready'}
@@ -433,4 +439,16 @@ def me(current_user: User = Depends(_get_current_user)) -> UserOut:
         role=current_user.role.value,
         institution_id=current_user.institution_id,
         email_verified_at=current_user.email_verified_at,
+    )
+
+
+@router.get('/me-sdma-admin', response_model=UserOut)
+def me_sdma_admin(current_admin: User = Depends(get_current_sdma_admin)) -> UserOut:
+    return UserOut(
+        id=current_admin.id,
+        email=current_admin.email,
+        full_name=current_admin.full_name,
+        role=current_admin.role.value,
+        institution_id=current_admin.institution_id,
+        email_verified_at=current_admin.email_verified_at,
     )
