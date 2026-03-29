@@ -6,6 +6,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app.core.email import (
+    send_welcome_onboarding_email,
     send_password_changed_alert_email,
     send_password_reset_token_email,
     send_signup_verification_email,
@@ -251,6 +252,12 @@ def complete_signup(payload: CompleteSignupRequest, db: Session = Depends(get_db
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    try:
+        send_welcome_onboarding_email(user.email, user.full_name or 'User')
+    except Exception:
+        # Account creation is successful even if welcome email delivery fails.
+        pass
 
     return RegisterResponse(message='Student account created successfully', user_id=user.id)
 

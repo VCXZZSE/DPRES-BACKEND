@@ -128,6 +128,101 @@ def send_password_reset_token_email(to_email: str, token: str) -> bool:
     return _send_email(message)
 
 
+def send_welcome_onboarding_email(to_email: str, user_name: str) -> bool:
+    safe_name = (user_name or 'User').strip() or 'User'
+
+    message = EmailMessage()
+    message['Subject'] = 'Welcome aboard DPRES'
+    message['From'] = settings.SMTP_FROM_EMAIL
+    message['To'] = to_email
+    message.set_content(
+        (
+            f'Dear {safe_name},\n\n'
+            'Welcome aboard DPRES.\n\n'
+            "We're glad to have you join a platform dedicated to strengthening disaster prevention, "
+            'preparedness, and response. Your account has been successfully set up.\n\n'
+            'With DPRES, you can access essential resources, stay informed, and contribute to proactive '
+            'disaster management efforts.\n\n'
+            'If you need any assistance or have questions, feel free to reach out to our support team.\n\n'
+            'Once again, welcome to DPRES - together, we prepare today to protect tomorrow.\n\n'
+            'Warm regards,\n'
+            'Team DPRES'
+        )
+    )
+    message.add_alternative(
+        f"""
+<!doctype html>
+<html>
+    <head>
+        <meta charset=\"utf-8\" />
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+        <title>Welcome aboard DPRES</title>
+    </head>
+    <body style=\"margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#374151;\">
+        <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f3f4f6;padding:16px 10px;\">
+            <tr>
+                <td align=\"center\">
+                    <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:680px;background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;box-shadow:0 12px 26px rgba(15,23,42,0.08);\">
+                        <tr>
+                            <td style=\"height:6px;background:linear-gradient(90deg,#ea580c,#ffffff,#16a34a);font-size:0;line-height:0;\">&nbsp;</td>
+                        </tr>
+
+                        <tr>
+                            <td style=\"padding:26px 22px 22px 22px;background:linear-gradient(135deg,#fff7ed,#fef3c7);text-align:center;position:relative;\">
+                                <div style=\"display:inline-block;width:66px;height:66px;background:#ffffff;border-radius:999px;box-shadow:0 4px 10px rgba(0,0,0,0.08);line-height:66px;text-align:center;font-size:30px;color:#ea580c;margin-bottom:12px;\">✶</div>
+                                <h1 style=\"margin:0 0 8px 0;font-size:24px;line-height:1.3;color:#1f2937;font-weight:700;\">Disaster Preparedness &amp; Response Education System</h1>
+                                <div style=\"width:92px;height:4px;border-radius:999px;background:linear-gradient(90deg,#ea580c,#16a34a);margin:0 auto;\"></div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style=\"padding:24px 22px 22px 22px;\">
+                                <p style=\"margin:0 0 14px 0;font-size:17px;line-height:1.6;color:#374151;\">Dear <span style=\"font-weight:700;color:#111827;\">{safe_name}</span>,</p>
+
+                                <p style=\"margin:0 0 14px 0;font-size:24px;line-height:1.35;color:#c2410c;font-weight:600;\">Welcome aboard DPRES.</p>
+
+                                <p style=\"margin:0 0 14px 0;font-size:15px;line-height:1.7;color:#374151;\">We're glad to have you join a platform dedicated to strengthening disaster prevention, preparedness, and response. Your account has been successfully set up, and you are now part of a growing network committed to building safer and more resilient communities.</p>
+
+                                <p style=\"margin:0 0 14px 0;font-size:15px;line-height:1.7;color:#374151;\">With DPRES, you can access essential resources, stay informed, and contribute to proactive disaster management efforts. Every action matters, and your participation plays a crucial role in making a difference.</p>
+
+                                <p style=\"margin:0 0 16px 0;font-size:15px;line-height:1.7;color:#374151;\">If you need any assistance or have questions, feel free to reach out to our support team.</p>
+
+                                <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:linear-gradient(90deg,#fff7ed,#f0fdf4);border-left:4px solid #ea580c;border-radius:8px;\">
+                                    <tr>
+                                        <td style=\"padding:14px 14px;\">
+                                            <p style=\"margin:0;font-size:16px;line-height:1.6;color:#1f2937;font-style:italic;\">Once again, welcome to DPRES - together, we prepare today to protect tomorrow.</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <p style=\"margin:16px 0 2px 0;font-size:15px;line-height:1.6;color:#1f2937;\">Warm regards,</p>
+                                <p style=\"margin:0;font-size:17px;line-height:1.4;color:#111827;font-weight:700;\">Team DPRES</p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style=\"padding:16px 22px;background:linear-gradient(135deg,#f9fafb,#fff7ed);border-top:1px solid #e5e7eb;text-align:center;\">
+                                <p style=\"margin:0 0 4px 0;font-size:12px;line-height:1.5;color:#6b7280;\">Disaster Prevention, Preparedness &amp; Response System</p>
+                                <p style=\"margin:0;font-size:11px;line-height:1.5;color:#6b7280;\"><span style=\"color:#ea580c;\">●</span> Building Resilient Communities <span style=\"color:#16a34a;\">●</span></p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style=\"height:6px;background:linear-gradient(90deg,#ea580c,#ffffff,#16a34a);font-size:0;line-height:0;\">&nbsp;</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
+        """,
+        subtype='html',
+    )
+
+    return _send_email(message)
+
+
 def send_password_changed_alert_email(to_email: str, changed_at_utc: Optional[datetime] = None) -> bool:
     if changed_at_utc is None:
         changed_at_utc = datetime.now(timezone.utc)
