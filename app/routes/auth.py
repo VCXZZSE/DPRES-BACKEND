@@ -30,6 +30,8 @@ from app.schemas import (
     SignupInitiateResponse,
     RegisterResponse,
     ResetPasswordRequest,
+    SdmaAdminLoginRequest,
+    SdmaAdminLoginResponse,
     StudentLogin,
     StudentRegister,
     Token,
@@ -277,6 +279,26 @@ def login_student(payload: StudentLogin, db: Session = Depends(get_db)) -> Token
 
     access_token = create_access_token(subject=str(user.id))
     return Token(access_token=access_token)
+
+
+@router.post('/login-sdma-admin', response_model=SdmaAdminLoginResponse)
+def login_sdma_admin(payload: SdmaAdminLoginRequest, db: Session = Depends(get_db)) -> SdmaAdminLoginResponse:
+    email = _normalize_email(payload.email)
+
+    user = db.scalar(select(User).where(and_(User.email == email, User.role == UserRole.SDMA_ADMIN)))
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid email or password')
+
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Account is inactive')
+
+    access_token = create_access_token(subject=str(user.id))
+
+    return SdmaAdminLoginResponse(
+        access_token=access_token,
+        email=user.email,
+        display_name=user.full_name or 'SDMA Admin',
+    )
 
 
 @router.post('/forgot-password', response_model=ForgotPasswordResponse)

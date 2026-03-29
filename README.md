@@ -47,6 +47,25 @@ Then set frontend Vercel env:
 VITE_AUTH_API_URL=https://your-backend-domain/api/auth
 ```
 
+### SDMA Admin Login
+
+Use `POST /api/auth/login-sdma-admin` with:
+
+```json
+{
+  "email": "admin@sdma.gov.in",
+  "password": "your-seeded-admin-password"
+}
+```
+
+Credentials are validated against the `users` table (role must be `sdma_admin`).
+
+Seed SDMA admin user (one-time):
+
+```bash
+PYTHONPATH=. ./venv/bin/python scripts/seed_sdma_admin.py --email admin@sdma.gov.in --name "SDMA Administrator"
+```
+
 ## 2.1) Seed Developer Login (optional but recommended)
 
 Run this once to create a persistent developer student account for sign-in testing:

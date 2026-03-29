@@ -17,6 +17,18 @@ class StudentLogin(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class SdmaAdminLoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
+
+
+class SdmaAdminLoginResponse(BaseModel):
+    access_token: str
+    token_type: str = 'bearer'
+    email: EmailStr
+    display_name: str
+
+
 class SignupInitiateRequest(BaseModel):
     institution_id: int
     email: EmailStr
