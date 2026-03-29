@@ -1,0 +1,79 @@
+from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+class StudentRegister(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    institution_id: int
+    full_name: str = Field(min_length=2, max_length=255)
+    age: Optional[int] = Field(default=None, ge=5, le=120)
+
+
+class StudentLogin(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+
+
+class SignupInitiateRequest(BaseModel):
+    institution_id: int
+    email: EmailStr
+    id_card_number: str = Field(min_length=2, max_length=128)
+    full_name: str = Field(min_length=2, max_length=255)
+    age: int = Field(ge=5, le=120)
+
+
+class SignupInitiateResponse(BaseModel):
+    message: str
+    verification_token: Optional[str] = None
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=8, max_length=16)
+
+
+class CompleteSignupRequest(BaseModel):
+    token: str = Field(min_length=8, max_length=16)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = 'bearer'
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    id_card_number: str = Field(min_length=2, max_length=128)
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=8, max_length=16)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    full_name: Optional[str]
+    role: str
+    institution_id: int
+    email_verified_at: Optional[datetime]
+
+    model_config = {'from_attributes': True}
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class RegisterResponse(BaseModel):
+    message: str
+    user_id: int
+
+
+class ForgotPasswordResponse(BaseModel):
+    message: str
+    reset_token: Optional[str] = None
