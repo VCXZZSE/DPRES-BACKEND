@@ -1,5 +1,5 @@
 import smtplib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from typing import Optional
 from urllib.parse import quote
@@ -131,7 +131,13 @@ def send_password_reset_token_email(to_email: str, token: str) -> bool:
 def send_password_changed_alert_email(to_email: str, changed_at_utc: Optional[datetime] = None) -> bool:
     if changed_at_utc is None:
         changed_at_utc = datetime.now(timezone.utc)
-    changed_at_ist = changed_at_utc.astimezone(ZoneInfo('Asia/Kolkata'))
+
+    try:
+        changed_at_ist = changed_at_utc.astimezone(ZoneInfo('Asia/Kolkata'))
+    except Exception:
+        # Fallback for minimal Python images that may not include zoneinfo data.
+        changed_at_ist = changed_at_utc.astimezone(timezone(timedelta(hours=5, minutes=30)))
+
     formatted_dt = (
         f"{changed_at_ist.strftime('%A')}, {changed_at_ist.strftime('%B')} "
         f"{changed_at_ist.day}, {changed_at_ist.year} at {changed_at_ist.strftime('%I:%M %p')} IST"
