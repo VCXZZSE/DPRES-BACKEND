@@ -52,18 +52,16 @@ def _normalize_name(full_name: str) -> str:
 
 
 def _validate_institution_email_domain(email: str, institution: Institution) -> None:
-    if institution.institution_type != 'college':
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Account creation is restricted to college email domains only',
-        )
-
     email_domain = extract_email_domain(email)
-    allowed_domains = [domain.lower().strip() for domain in (institution.allowed_domains or [])]
-    if email_domain not in allowed_domains:
+
+    blocked_public_domains = {
+        'gmail.com',
+        'googlemail.com',
+    }
+    if email_domain in blocked_public_domains:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='Email domain is not allowed for this institution',
+            detail='Personal Gmail addresses are not allowed. Please use your education or workplace email.',
         )
 
 
