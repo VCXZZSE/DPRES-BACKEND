@@ -51,6 +51,22 @@ def _normalize_name(full_name: str) -> str:
     return ' '.join(full_name.strip().split())
 
 
+def _validate_institution_email_domain(email: str, institution: Institution) -> None:
+    if institution.institution_type != 'college':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Account creation is restricted to college email domains only',
+        )
+
+    email_domain = extract_email_domain(email)
+    allowed_domains = [domain.lower().strip() for domain in (institution.allowed_domains or [])]
+    if email_domain not in allowed_domains:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Email domain is not allowed for this institution',
+        )
+
+
 def _get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -97,19 +113,7 @@ def register_student(payload: StudentRegister, db: Session = Depends(get_db)) ->
     if not institution:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Institution not found')
 
-    if institution.institution_type != 'college':
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Account creation is restricted to college email domains only',
-        )
-
-    email_domain = extract_email_domain(email)
-    allowed_domains = [domain.lower().strip() for domain in (institution.allowed_domains or [])]
-    if email_domain not in allowed_domains:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Email domain is not allowed for this institution',
-        )
+    _validate_institution_email_domain(email, institution)
 
     user = User(
         email=email,
@@ -135,6 +139,8 @@ def signup_initiate(payload: SignupInitiateRequest, db: Session = Depends(get_db
     institution = db.get(Institution, payload.institution_id)
     if not institution:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Institution not found')
+
+    _validate_institution_email_domain(email, institution)
 
     existing_user = db.scalar(select(User).where(User.email == email))
     if existing_user:
@@ -216,6 +222,12 @@ def complete_signup(payload: CompleteSignupRequest, db: Session = Depends(get_db
 
     if verification.email_verified_at is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Email must be verified before signup completion')
+
+    institution = db.get(Institution, verification.institution_id)
+    if not institution:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Institution not found')
+
+    _validate_institution_email_domain(verification.email, institution)
 
     existing_user = db.scalar(select(User).where(User.email == verification.email))
     if existing_user:
