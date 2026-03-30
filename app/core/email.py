@@ -323,3 +323,59 @@ def send_password_changed_alert_email(to_email: str, changed_at_utc: Optional[da
     )
 
     return _send_email(message)
+
+
+def send_account_removal_email(to_email: str, user_name: Optional[str] = None) -> bool:
+    safe_name = (user_name or 'User').strip() or 'User'
+
+    message = EmailMessage()
+    message['Subject'] = 'DPRES Account Removal Notice'
+    message['From'] = settings.SMTP_FROM_EMAIL
+    message['To'] = to_email
+    message.set_content(
+        (
+            f'Dear {safe_name},\n\n'
+            'This is to confirm that your DPRES account and associated records have been removed from our system. '
+            'Any active sessions have also been revoked.\n\n'
+            'If you believe this action was made in error, please contact support immediately.\n\n'
+            'Regards,\n'
+            'Team DPRES'
+        )
+    )
+    message.add_alternative(
+        f"""
+<!doctype html>
+<html>
+    <head>
+        <meta charset=\"utf-8\" />
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+        <title>DPRES Account Removal Notice</title>
+    </head>
+    <body style=\"margin:0;padding:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;color:#111827;\">
+        <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f8fafc;padding:18px 10px;\">
+            <tr>
+                <td align=\"center\">
+                    <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;\">
+                        <tr>
+                            <td style=\"height:6px;background:linear-gradient(90deg,#ef4444,#f97316,#facc15);font-size:0;line-height:0;\">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td style=\"padding:24px 22px;\">
+                                <h1 style=\"margin:0 0 12px 0;font-size:28px;line-height:1.2;color:#b91c1c;text-align:center;\">Account Removal Notice</h1>
+                                <p style=\"margin:0 0 12px 0;font-size:16px;line-height:1.6;color:#1f2937;\">Dear <strong>{safe_name}</strong>,</p>
+                                <p style=\"margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#374151;\">This is to confirm that your DPRES account and associated records have been removed from our system. Any active sessions have also been revoked.</p>
+                                <p style=\"margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#374151;\">If you believe this action was made in error, please contact support immediately.</p>
+                                <p style=\"margin:18px 0 0 0;font-size:15px;line-height:1.6;color:#111827;\">Regards,<br/><strong>Team DPRES</strong></p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
+        """,
+        subtype='html',
+    )
+
+    return _send_email(message)
