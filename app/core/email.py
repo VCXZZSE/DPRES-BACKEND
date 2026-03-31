@@ -379,3 +379,75 @@ def send_account_removal_email(to_email: str, user_name: Optional[str] = None) -
     )
 
     return _send_email(message)
+
+
+def send_sos_acknowledgement_email(
+    to_email: str,
+    user_name: Optional[str],
+    event_id: int,
+    location_text: Optional[str],
+    created_at_utc: datetime,
+) -> bool:
+    safe_name = (user_name or 'Student').strip() or 'Student'
+    try:
+        created_at_ist = created_at_utc.astimezone(ZoneInfo('Asia/Kolkata'))
+    except Exception:
+        created_at_ist = created_at_utc.astimezone(timezone(timedelta(hours=5, minutes=30)))
+
+    formatted_dt = created_at_ist.strftime('%d-%m-%Y %I:%M:%S %p IST')
+    safe_location = (location_text or 'Shared GPS coordinates').strip() or 'Shared GPS coordinates'
+
+    message = EmailMessage()
+    message['Subject'] = 'DPRES SOS Received - Help Is On The Way'
+    message['From'] = settings.SMTP_FROM_EMAIL
+    message['To'] = to_email
+    message.set_content(
+        (
+            f'Dear {safe_name},\n\n'
+            'Your SOS request has been received by DPRES control room. Help is on the way.\n\n'
+            f'SOS ID: {event_id}\n'
+            f'Time: {formatted_dt}\n'
+            f'Location: {safe_location}\n\n'
+            'Stay calm. Keep your phone with you and follow local safety instructions.\n\n'
+            'Team DPRES'
+        )
+    )
+    message.add_alternative(
+        f"""
+<!doctype html>
+<html>
+    <head>
+        <meta charset=\"utf-8\" />
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+        <title>DPRES SOS Received</title>
+    </head>
+    <body style=\"margin:0;padding:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;color:#111827;\">
+        <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f8fafc;padding:18px 10px;\">
+            <tr>
+                <td align=\"center\">
+                    <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;\">
+                        <tr>
+                            <td style=\"height:6px;background:linear-gradient(90deg,#ef4444,#f97316,#facc15);font-size:0;line-height:0;\">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td style=\"padding:24px 22px;\">
+                                <h1 style=\"margin:0 0 12px 0;font-size:28px;line-height:1.2;color:#b91c1c;text-align:center;\">SOS Received</h1>
+                                <p style=\"margin:0 0 12px 0;font-size:16px;line-height:1.6;color:#1f2937;\">Dear <strong>{safe_name}</strong>,</p>
+                                <p style=\"margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#374151;\">Your SOS request has been received by DPRES control room. <strong>Help is on the way.</strong></p>
+                                <p style=\"margin:0 0 6px 0;font-size:14px;line-height:1.6;color:#111827;\"><strong>SOS ID:</strong> {event_id}</p>
+                                <p style=\"margin:0 0 6px 0;font-size:14px;line-height:1.6;color:#111827;\"><strong>Time:</strong> {formatted_dt}</p>
+                                <p style=\"margin:0 0 12px 0;font-size:14px;line-height:1.6;color:#111827;\"><strong>Location:</strong> {safe_location}</p>
+                                <p style=\"margin:16px 0 0 0;font-size:15px;line-height:1.6;color:#111827;\">Stay calm and keep your phone available for follow-up.<br/><strong>Team DPRES</strong></p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
+        """,
+        subtype='html',
+    )
+
+    return _send_email(message)

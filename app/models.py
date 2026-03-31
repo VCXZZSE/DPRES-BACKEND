@@ -127,6 +127,21 @@ class SessionToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class SOSEvent(Base):
+    __tablename__ = 'sos_events'
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    latitude: Mapped[float] = mapped_column(nullable=False)
+    longitude: Mapped[float] = mapped_column(nullable=False)
+    location_text: Mapped[Optional[str]] = mapped_column(String(255))
+    accuracy_meters: Mapped[Optional[float]] = mapped_column(nullable=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default='active')
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped[User] = relationship()
+
+
 Index('ix_email_verifications_user_token', EmailVerification.user_id, EmailVerification.token)
 Index('ix_password_resets_user_token', PasswordReset.user_id, PasswordReset.token)
 Index('ix_student_directory_lookup', StudentDirectory.institution_id, StudentDirectory.email, StudentDirectory.id_card_number)

@@ -89,3 +89,16 @@ class RegisterResponse(BaseModel):
 class ForgotPasswordResponse(BaseModel):
     message: str
     reset_token: Optional[str] = None
+
+
+class SOSTriggerRequest(BaseModel):
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    location_text: Optional[str] = Field(default=None, max_length=255)
+    accuracy_meters: Optional[float] = Field(default=None, ge=0)
+
+
+class SOSTriggerResponse(BaseModel):
+    message: str
+    event_id: int
+    created_at: datetime

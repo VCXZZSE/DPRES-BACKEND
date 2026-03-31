@@ -65,7 +65,7 @@ def _validate_institution_email_domain(email: str, institution: Institution) -> 
         )
 
 
-def _get_current_user(
+def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
@@ -88,7 +88,7 @@ def _get_current_user(
     return user
 
 
-def get_current_sdma_admin(current_user: User = Depends(_get_current_user)) -> User:
+def get_current_sdma_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.SDMA_ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='SDMA admin access required')
     return current_user
@@ -441,7 +441,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 
 
 @router.get('/me', response_model=UserOut)
-def me(current_user: User = Depends(_get_current_user)) -> UserOut:
+def me(current_user: User = Depends(get_current_user)) -> UserOut:
     return UserOut(
         id=current_user.id,
         email=current_user.email,
