@@ -105,6 +105,7 @@ def get_active_sos_events(
             location_text=event.location_text,
             accuracy_meters=event.accuracy_meters,
             created_at=event.created_at,
+            resolved_at=event.resolved_at,
             student=SOSActiveStudentDetails(
                 user_id=student.id,
                 full_name=student.full_name,
@@ -127,7 +128,7 @@ def get_resolved_sos_events(
         select(SOSEvent, User)
         .join(User, User.id == SOSEvent.user_id)
         .where(SOSEvent.status == 'resolved')
-        .order_by(SOSEvent.created_at.desc())
+        .order_by(SOSEvent.resolved_at.desc(), SOSEvent.created_at.desc())
         .limit(100)
     ).all()
 
@@ -140,6 +141,7 @@ def get_resolved_sos_events(
             location_text=event.location_text,
             accuracy_meters=event.accuracy_meters,
             created_at=event.created_at,
+            resolved_at=event.resolved_at,
             student=SOSActiveStudentDetails(
                 user_id=student.id,
                 full_name=student.full_name,
@@ -172,6 +174,7 @@ def resolve_sos_event(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='SOS event already resolved')
 
     event.status = 'resolved'
+    event.resolved_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(event)
 
@@ -183,6 +186,7 @@ def resolve_sos_event(
         location_text=event.location_text,
         accuracy_meters=event.accuracy_meters,
         created_at=event.created_at,
+        resolved_at=event.resolved_at,
         student=SOSActiveStudentDetails(
             user_id=student.id,
             full_name=student.full_name,

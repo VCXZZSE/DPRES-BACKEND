@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.routes.auth import router as auth_router
@@ -8,6 +12,17 @@ from app.routes.sos import router as sos_router
 
 
 app = FastAPI(title='DPRES Backend', version='0.1.0')
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+def rate_limit_error_handler(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded. Please wait before retrying."},
+    )
 
 app.add_middleware(
     CORSMiddleware,

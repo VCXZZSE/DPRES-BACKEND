@@ -39,15 +39,14 @@ class SignupInitiateRequest(BaseModel):
 
 class SignupInitiateResponse(BaseModel):
     message: str
-    verification_token: Optional[str] = None
 
 
 class VerifyEmailRequest(BaseModel):
-    token: str = Field(min_length=8, max_length=16)
+    token: str = Field(min_length=8, max_length=64)
 
 
 class CompleteSignupRequest(BaseModel):
-    token: str = Field(min_length=8, max_length=16)
+    token: str = Field(min_length=8, max_length=64)
     password: str = Field(min_length=8, max_length=128)
 
 
@@ -62,7 +61,7 @@ class ForgotPasswordRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    token: str = Field(min_length=8, max_length=16)
+    token: str = Field(min_length=8, max_length=64)
     new_password: str = Field(min_length=8, max_length=128)
 
 
@@ -119,6 +118,7 @@ class SOSActiveEventOut(BaseModel):
     location_text: Optional[str] = None
     accuracy_meters: Optional[float] = None
     created_at: datetime
+    resolved_at: Optional[datetime] = None
     student: SOSActiveStudentDetails
 
 

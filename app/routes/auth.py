@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
+import secrets
 
 from app.core.email import (
     send_welcome_onboarding_email,
@@ -15,7 +16,6 @@ from app.core.security import (
     create_access_token,
     decode_token,
     extract_email_domain,
-    generate_numeric_token,
     hash_password,
     verify_password,
 )
@@ -41,6 +41,9 @@ from app.schemas import (
 
 router = APIRouter(prefix='/api/auth', tags=['auth'])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/login-student')
+
+# Import limiter from main for rate limiting decorators
+from app.main import limiter
 
 
 def _normalize_email(email: str) -> str:
@@ -129,6 +132,7 @@ def register_student(payload: StudentRegister, db: Session = Depends(get_db)) ->
 
 
 @router.post('/signup-initiate', response_model=SignupInitiateResponse)
+@limiter.limit("5/minute")
 def signup_initiate(payload: SignupInitiateRequest, db: Session = Depends(get_db)) -> SignupInitiateResponse:
     now = datetime.now(timezone.utc)
     email = _normalize_email(payload.email)
@@ -151,7 +155,7 @@ def signup_initiate(payload: SignupInitiateRequest, db: Session = Depends(get_db
         )
     ).update({'used_at': now}, synchronize_session=False)
 
-    token = generate_numeric_token(8)
+    token = secrets.token_urlsafe(32)
     expires_at = now + timedelta(minutes=15)
     verification = SignupVerification(
         institution_id=payload.institution_id,
@@ -177,7 +181,6 @@ def signup_initiate(payload: SignupInitiateRequest, db: Session = Depends(get_db
             if email_sent
             else 'Verification token generated. Please verify and complete signup.'
         ),
-        verification_token=None if email_sent else token,
     )
 
 
@@ -281,6 +284,7 @@ def complete_signup(payload: CompleteSignupRequest, db: Session = Depends(get_db
 
 
 @router.post('/login-student', response_model=Token)
+@limiter.limit("5/minute")
 def login_student(payload: StudentLogin, db: Session = Depends(get_db)) -> Token:
     email = _normalize_email(payload.email)
     user = db.scalar(select(User).where(and_(User.email == email, User.role == UserRole.STUDENT)))
@@ -298,6 +302,7 @@ def login_student(payload: StudentLogin, db: Session = Depends(get_db)) -> Token
 
 
 @router.post('/login-sdma-admin', response_model=SdmaAdminLoginResponse)
+@limiter.limit("5/minute")
 def login_sdma_admin(payload: SdmaAdminLoginRequest, db: Session = Depends(get_db)) -> SdmaAdminLoginResponse:
     email = _normalize_email(payload.email)
 
@@ -318,6 +323,7 @@ def login_sdma_admin(payload: SdmaAdminLoginRequest, db: Session = Depends(get_d
 
 
 @router.post('/forgot-password', response_model=ForgotPasswordResponse)
+@limiter.limit("5/minute")
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)) -> ForgotPasswordResponse:
     email = _normalize_email(payload.email)
     id_card_number = payload.id_card_number.strip()
@@ -377,7 +383,7 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
         )
     ).update({'used_at': datetime.now(timezone.utc)}, synchronize_session=False)
 
-    token = generate_numeric_token(8)
+    token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
 
     db.add(
@@ -408,6 +414,7 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
 
 
 @router.post('/reset-password', response_model=MessageResponse)
+@limiter.limit("5/minute")
 def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)) -> MessageResponse:
     now = datetime.now(timezone.utc)
     reset_entry = db.scalar(
