@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.routes.auth import router as auth_router
 from app.routes.sos import admin_router as admin_sos_router
 from app.routes.sos import router as sos_router
@@ -13,7 +12,6 @@ from app.routes.sos import router as sos_router
 
 app = FastAPI(title='DPRES Backend', version='0.1.0')
 
-limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 
 
