@@ -92,8 +92,8 @@ class ForgotPasswordResponse(BaseModel):
 
 
 class SOSTriggerRequest(BaseModel):
-    latitude: float = Field(ge=-90, le=90)
-    longitude: float = Field(ge=-180, le=180)
+    latitude: float = Field(gt=-90, lt=90)
+    longitude: float = Field(gt=-180, lt=180)
     location_text: Optional[str] = Field(default=None, max_length=255)
     accuracy_meters: Optional[float] = Field(default=None, ge=0)
 

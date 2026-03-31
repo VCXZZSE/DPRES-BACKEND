@@ -54,11 +54,13 @@ def trigger_sos(
             detail='SOS already sent recently. Please wait a moment before retrying.',
         )
 
+    normalized_location_text = payload.location_text.strip() if payload.location_text else None
+
     event = SOSEvent(
         user_id=current_user.id,
         latitude=payload.latitude,
         longitude=payload.longitude,
-        location_text=payload.location_text,
+        location_text=normalized_location_text,
         accuracy_meters=payload.accuracy_meters,
         status='active',
     )
@@ -71,7 +73,7 @@ def trigger_sos(
         to_email=current_user.email,
         user_name=current_user.full_name,
         event_id=event.id,
-        location_text=payload.location_text,
+        location_text=normalized_location_text,
         created_at_utc=event.created_at,
     )
 
