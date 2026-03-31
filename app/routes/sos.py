@@ -7,10 +7,11 @@ from sqlalchemy.orm import Session
 from app.core.email import send_sos_acknowledgement_email
 from app.database import get_db
 from app.models import SOSEvent, User, UserRole
-from app.routes.auth import get_current_user
-from app.schemas import SOSTriggerRequest, SOSTriggerResponse
+from app.routes.auth import get_current_sdma_admin, get_current_user
+from app.schemas import SOSActiveEventsResponse, SOSTriggerRequest, SOSTriggerResponse
 
 router = APIRouter(prefix='/api/sos', tags=['sos'])
+admin_router = APIRouter(prefix='/api/admin', tags=['admin-sos'])
 
 SOS_COOLDOWN_SECONDS = 60
 
@@ -71,3 +72,37 @@ def trigger_sos(
         event_id=event.id,
         created_at=event.created_at,
     )
+
+
+@admin_router.get('/sos/active', response_model=SOSActiveEventsResponse)
+def get_active_sos_events(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_sdma_admin),
+) -> SOSActiveEventsResponse:
+    rows = db.execute(
+        select(SOSEvent, User)
+        .join(User, User.id == SOSEvent.user_id)
+        .where(SOSEvent.status == 'active')
+        .order_by(SOSEvent.created_at.desc())
+    ).all()
+
+    events = [
+        {
+            'event_id': event.id,
+            'status': event.status,
+            'latitude': event.latitude,
+            'longitude': event.longitude,
+            'location_text': event.location_text,
+            'accuracy_meters': event.accuracy_meters,
+            'created_at': event.created_at,
+            'student': {
+                'user_id': student.id,
+                'full_name': student.full_name,
+                'email': student.email,
+                'id_card_number': student.id_card_number,
+            },
+        }
+        for event, student in rows
+    ]
+
+    return SOSActiveEventsResponse(events=events)

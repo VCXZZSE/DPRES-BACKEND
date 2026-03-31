@@ -102,3 +102,25 @@ class SOSTriggerResponse(BaseModel):
     message: str
     event_id: int
     created_at: datetime
+
+
+class SOSActiveStudentDetails(BaseModel):
+    user_id: int
+    full_name: Optional[str] = None
+    email: EmailStr
+    id_card_number: Optional[str] = None
+
+
+class SOSActiveEventOut(BaseModel):
+    event_id: int
+    status: str
+    latitude: float
+    longitude: float
+    location_text: Optional[str] = None
+    accuracy_meters: Optional[float] = None
+    created_at: datetime
+    student: SOSActiveStudentDetails
+
+
+class SOSActiveEventsResponse(BaseModel):
+    events: list[SOSActiveEventOut]

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.routes.auth import router as auth_router
+from app.routes.sos import admin_router as admin_sos_router
 from app.routes.sos import router as sos_router
 
 
@@ -30,3 +31,4 @@ def health() -> dict[str, str]:
 
 app.include_router(auth_router)
 app.include_router(sos_router)
+app.include_router(admin_sos_router)
