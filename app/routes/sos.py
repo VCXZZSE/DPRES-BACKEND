@@ -8,7 +8,13 @@ from app.core.email import send_sos_acknowledgement_email
 from app.database import get_db
 from app.models import SOSEvent, User, UserRole
 from app.routes.auth import get_current_sdma_admin, get_current_user
-from app.schemas import SOSActiveEventsResponse, SOSTriggerRequest, SOSTriggerResponse
+from app.schemas import (
+    SOSActiveEventOut,
+    SOSActiveEventsResponse,
+    SOSActiveStudentDetails,
+    SOSTriggerRequest,
+    SOSTriggerResponse,
+)
 
 router = APIRouter(prefix='/api/sos', tags=['sos'])
 admin_router = APIRouter(prefix='/api/admin', tags=['admin-sos'])
@@ -87,21 +93,21 @@ def get_active_sos_events(
     ).all()
 
     events = [
-        {
-            'event_id': event.id,
-            'status': event.status,
-            'latitude': event.latitude,
-            'longitude': event.longitude,
-            'location_text': event.location_text,
-            'accuracy_meters': event.accuracy_meters,
-            'created_at': event.created_at,
-            'student': {
-                'user_id': student.id,
-                'full_name': student.full_name,
-                'email': student.email,
-                'id_card_number': student.id_card_number,
-            },
-        }
+        SOSActiveEventOut(
+            event_id=event.id,
+            status=event.status,
+            latitude=event.latitude,
+            longitude=event.longitude,
+            location_text=event.location_text,
+            accuracy_meters=event.accuracy_meters,
+            created_at=event.created_at,
+            student=SOSActiveStudentDetails(
+                user_id=student.id,
+                full_name=student.full_name,
+                email=student.email,
+                id_card_number=student.id_card_number,
+            ),
+        )
         for event, student in rows
     ]
 
