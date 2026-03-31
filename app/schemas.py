@@ -124,3 +124,12 @@ class SOSActiveEventOut(BaseModel):
 
 class SOSActiveEventsResponse(BaseModel):
     events: list[SOSActiveEventOut]
+
+
+class SOSResolvedEventsResponse(BaseModel):
+    events: list[SOSActiveEventOut]
+
+
+class SOSResolveCaseResponse(BaseModel):
+    message: str
+    event: SOSActiveEventOut

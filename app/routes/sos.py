@@ -11,6 +11,8 @@ from app.routes.auth import get_current_sdma_admin, get_current_user
 from app.schemas import (
     SOSActiveEventOut,
     SOSActiveEventsResponse,
+    SOSResolveCaseResponse,
+    SOSResolvedEventsResponse,
     SOSActiveStudentDetails,
     SOSTriggerRequest,
     SOSTriggerResponse,
@@ -112,3 +114,79 @@ def get_active_sos_events(
     ]
 
     return SOSActiveEventsResponse(events=events)
+
+
+@admin_router.get('/sos/resolved', response_model=SOSResolvedEventsResponse)
+def get_resolved_sos_events(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_sdma_admin),
+) -> SOSResolvedEventsResponse:
+    rows = db.execute(
+        select(SOSEvent, User)
+        .join(User, User.id == SOSEvent.user_id)
+        .where(SOSEvent.status == 'resolved')
+        .order_by(SOSEvent.created_at.desc())
+        .limit(100)
+    ).all()
+
+    events = [
+        SOSActiveEventOut(
+            event_id=event.id,
+            status=event.status,
+            latitude=event.latitude,
+            longitude=event.longitude,
+            location_text=event.location_text,
+            accuracy_meters=event.accuracy_meters,
+            created_at=event.created_at,
+            student=SOSActiveStudentDetails(
+                user_id=student.id,
+                full_name=student.full_name,
+                email=student.email,
+                id_card_number=student.id_card_number,
+            ),
+        )
+        for event, student in rows
+    ]
+
+    return SOSResolvedEventsResponse(events=events)
+
+
+@admin_router.post('/sos/{event_id}/resolve', response_model=SOSResolveCaseResponse)
+def resolve_sos_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_sdma_admin),
+) -> SOSResolveCaseResponse:
+    row = db.execute(
+        select(SOSEvent, User)
+        .join(User, User.id == SOSEvent.user_id)
+        .where(SOSEvent.id == event_id)
+    ).first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='SOS event not found')
+
+    event, student = row
+    if event.status == 'resolved':
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='SOS event already resolved')
+
+    event.status = 'resolved'
+    db.commit()
+    db.refresh(event)
+
+    response_event = SOSActiveEventOut(
+        event_id=event.id,
+        status=event.status,
+        latitude=event.latitude,
+        longitude=event.longitude,
+        location_text=event.location_text,
+        accuracy_meters=event.accuracy_meters,
+        created_at=event.created_at,
+        student=SOSActiveStudentDetails(
+            user_id=student.id,
+            full_name=student.full_name,
+            email=student.email,
+            id_card_number=student.id_card_number,
+        ),
+    )
+
+    return SOSResolveCaseResponse(message='SOS case resolved successfully', event=response_event)
